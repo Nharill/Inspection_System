@@ -23,10 +23,11 @@
 
         .form-pages-wrapper {
             display: flex;
+            flex-direction: column; /* Changed to column for live view as well */
             gap: 20px;
             justify-content: center;
-            align-items: flex-start;
-            flex-wrap: wrap;
+            align-items: center;
+            flex-wrap: nowrap;
         }
 
         .form-container {
@@ -41,6 +42,38 @@
             font-size: 11pt;
             overflow: visible;
         }
+        
+        /* New Checkbox Styles for the formatted display forms */
+        .form-container .checkbox-item input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            border: 1px solid black;
+            width: 14px;
+            height: 14px;
+            margin-right: 8px;
+            cursor: default; /* Disable cursor change for disabled checkboxes */
+            position: relative;
+            background-color: white;
+            flex-shrink: 0;
+        }
+
+        .form-container .checkbox-item input[type="checkbox"]:checked {
+            background-color: green;
+            border-color: green;
+        }
+        
+        .form-container .checkbox-item input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: white;
+            font-size: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            line-height: 1;
+            font-weight: bold;
+        }
 
         /* --- Print Specific Styles --- */
         @media print {
@@ -50,11 +83,24 @@
                 margin: 0 !important;
                 display: block !important;
             }
+            
+            /* Checkbox styles for print */
+            .form-container .checkbox-item input[type="checkbox"] {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                border: 1px solid black !important;
+                background-color: white !important;
+            }
+            
+            .form-container .checkbox-item input[type="checkbox"]:checked {
+                background-color: green !important;
+                border-color: green !important;
+            }
 
             /* Set Legal page size and margins for printing */
             @page {
                 size: legal portrait;
-                margin: 0.08in 0.08in !important;
+                margin: 0.25in 0.25in !important; /* Adjusted margins for better fit */
             }
 
             .form-pages-wrapper {
@@ -65,10 +111,11 @@
                 gap: 4px !important;
                 width: 100% !important;
                 max-width: none !important;
-                transform: scale(0.98) !important;
+                /* Adjusted scale to ensure it fits consistently within print margins */
+                transform: scale(0.9) !important;
                 transform-origin: top center !important;
-                margin-top: 6px !important;
-                margin-bottom: -10px !important;
+                margin-top: 30px !important; /* Moved the forms down */
+                margin-bottom: 0px !important;
                 padding: 0 !important;
             }
 
@@ -76,15 +123,26 @@
                 box-shadow: none !important;
                 border: 1px solid #000 !important;
                 page-break-inside: avoid !important;
-                width: 8.4in !important;
+                width: 8in !important; /* Adjusted width for print */
                 height: auto !important;
-                max-height: 9.8in !important;
+                max-height: none !important;
                 margin: 0 !important;
                 padding: 12px 18px !important;
                 flex-shrink: 0 !important;
                 box-sizing: border-box !important;
                 background: white !important;
                 overflow: visible !important;
+                font-size: 10pt !important;
+            }
+            .header-text, .control-info, .checkbox-item label, .input-label, .documentary-requirements-title, .remarks-legend p, .first-table-container th, .first-table-container td, .bottom-left-table-container td {
+                font-size: 0.8em !important;
+                line-height: 1.2 !important;
+            }
+            
+            .first-table-container th, .first-table-container td, .bottom-left-table-container td {
+                font-size: 0.7em !important;
+                padding: 3px !important;
+                line-height: 1.2 !important;
             }
 
             /* Ensure all lines remain visible and are exactly 1px black */
@@ -106,42 +164,30 @@
                 color: #000 !important;
             }
 
-            /* Larger font sizes for better readability */
-            .header-text, .control-info, .checkbox-item label, .input-label, .documentary-requirements-title, .remarks-legend p {
-                 font-size: 0.9em !important;
-                 line-height: 1.4 !important;
-            }
-            
-            .first-table-container th, .first-table-container td, .bottom-left-table-container td {
-                font-size: 0.8em !important;
-                padding: 5px !important;
-                line-height: 1.4 !important;
-            }
-            
             .form-title {
-                font-size: 1.0rem !important;
-                margin: 6px 0 !important;
+                font-size: 0.9rem !important;
+                margin: 4px 0 !important;
             }
             
             .control-no-line {
-                font-size: 0.9rem !important;
-                min-height: 20px !important;
-                padding: 5px 6px !important;
-                line-height: 1.4 !important;
+                font-size: 0.8rem !important;
+                min-height: 18px !important;
+                padding: 4px !important;
             }
 
             /* Remove background from copy labels for print */
             .copy-label {
                 background-color: transparent !important;
-                font-size: 0.95rem !important;
-                padding: 4px 6px !important;
+                font-size: 0.8rem !important;
+                padding: 2px 4px !important;
+                top: 65px !important; /* Adjusted for new form position */
             }
             
             .copy-label-inline {
                 background-color: transparent !important;
-                font-size: 1.2rem !important;
-                padding: 4px 8px !important;
-                border: 2px solid !important;
+                font-size: 1rem !important;
+                padding: 3px 6px !important;
+                border: 1px solid !important;
             }
 
             /* Hide elements not needed in print */
@@ -218,7 +264,7 @@
             
             /* Smaller logo for print */
             .logo {
-                width: 36px !important;
+                width: 80px !important;
                 height: auto !important;
             }
             
@@ -271,6 +317,18 @@
 
             .form-container:last-child {
                 margin-top: 2px !important;
+            }
+            
+            /* Changes for the bottom table to make it a single column */
+            .bottom-left-table-container table {
+                border-collapse: collapse !important;
+            }
+            .bottom-left-table-container td {
+                border: none !important;
+                border-bottom: 1px solid black !important;
+            }
+            .bottom-left-table-container tr:last-child td {
+                border-bottom: none !important;
             }
         }
 
@@ -457,13 +515,16 @@
             font-weight: bold;
             margin-bottom: 6px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
         }
-        .documentary-requirements-title span {
+        .documentary-requirements-title .instructions {
+            text-align: center;
             font-style: italic;
-            font-weight: normal;
-            margin-left: 20px;
+            font-weight: bold;
+            font-size: 0.8em;
+            margin-bottom: 5px;
         }
+        
         .documentary-requirements-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -818,6 +879,23 @@
             background-color: #f5f5f5;
             border-bottom: 1px solid #666;
         }
+
+        /* New styles for the single-column table in the generated form */
+        .inspector-signature-row {
+            display: flex;
+            align-items: center;
+            height: 35px;
+            font-size: 0.65rem;
+            border: 1px solid black;
+            padding: 6px;
+        }
+        /* Style to make it look like a single column, but keep borders between rows */
+        .bottom-left-table-container.flex-col > .inspector-signature-row:not(:last-child) {
+            border-bottom: none;
+        }
+        .bottom-left-table-container.flex-col > .inspector-signature-row:first-child {
+            border-bottom: 1px solid black;
+        }
     </style>
 </head>
 <body>
@@ -876,11 +954,11 @@
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 mt-8">
-                    <button onclick="disagreePrivacy()" 
+                    <button onclick="disagreePrivacy()"
                             class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                         I Disagree / Exit
                     </button>
-                    <button onclick="agreePrivacy()" 
+                    <button onclick="agreePrivacy()"
                             class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                         I Agree & Continue
                     </button>
@@ -897,7 +975,7 @@
                 <div class="flex justify-between items-center py-6">
                     <div class="flex items-center space-x-4">
                         <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
-                            <span class="text-white text-2xl font-bold">🏛️</span>
+                            <span class="text-white text-2xl">🏛️</span>
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Inspection Request System</h1>
@@ -935,7 +1013,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for operational purchases (supplies, materials, and equipment).
                         </p>
-                        <button onclick="navigateToForm('purchases')" 
+                        <button onclick="navigateToForm('purchases')"
                                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -953,7 +1031,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for UCSS purchases.
                         </p>
-                        <button onclick="navigateToForm('ucss')" 
+                        <button onclick="navigateToForm('ucss')"
                                 class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -971,7 +1049,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for Post-repair inspection and waste material disposal.
                         </p>
-                        <button onclick="navigateToForm('postRepair')" 
+                        <button onclick="navigateToForm('postRepair')"
                                 class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -989,7 +1067,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for Janitorial Supplies and Services.
                         </p>
-                        <button onclick="navigateToForm('janitorial')" 
+                        <button onclick="navigateToForm('janitorial')"
                                 class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -1074,8 +1152,24 @@
         }
 
         function disagreePrivacy() {
-            alert('You must agree to the Data Privacy Act terms to use this system.');
-            // Optionally redirect or close the application
+            let messageBox = document.createElement('div');
+            messageBox.innerHTML = `
+                <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
+                    <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-yellow-500 text-2xl">⚠️</span>
+                            <h3 class="text-lg font-bold">Consent Required</h3>
+                        </div>
+                        <p class="text-sm text-gray-700">You must agree to the Data Privacy Act terms to use this system.</p>
+                        <div class="flex justify-end mt-6">
+                            <button onclick="this.closest('.fixed').remove()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition-colors">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(messageBox);
         }
 
         // Initialize user session
@@ -1204,37 +1298,37 @@
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Requested By *</label>
-                                            <input type="text" name="requestedBy" required 
-                                                   placeholder="Enter your full name"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="text" name="requestedBy" required
+                                                    placeholder="Enter your full name"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Contact Number *</label>
-                                            <input type="tel" name="contactNumber" required 
-                                                   placeholder="e.g., +63 912 345 6789"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="tel" name="contactNumber" required
+                                                    placeholder="e.g., +63 912 345 6789"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Institutional Email *</label>
-                                            <input type="email" name="institutionalEmail" required 
-                                                   placeholder="your.name@pup.edu.ph"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="email" name="institutionalEmail" required
+                                                    placeholder="your.name@pup.edu.ph"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Office/Department *</label>
-                                            <input type="text" name="officeDepartment" required 
-                                                   placeholder="e.g., College of Engineering"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="text" name="officeDepartment" required
+                                                    placeholder="e.g., College of Engineering"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Disbursing Officer *</label>
-                                            <input type="text" name="disbursingOfficer" required 
-                                                   placeholder="Enter disbursing officer name"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="text" name="disbursingOfficer" required
+                                                    placeholder="Enter disbursing officer name"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                         <div class="space-y-2">
                                             <label class="block text-sm font-semibold text-gray-700">Sector *</label>
-                                            <select name="sector" required 
+                                            <select name="sector" required
                                                     class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 bg-white">
                                                 <option value="">Choose your sector</option>
                                                 <option value="OP">OP - Office of the President</option>
@@ -1266,15 +1360,15 @@
                                 <div class="bg-gray-50 rounded-xl p-6 space-y-6">
                                     <div class="space-y-2">
                                         <label class="block text-sm font-semibold text-gray-700">Purpose *</label>
-                                        <textarea name="purpose" required rows="3" 
-                                                  placeholder="Describe the purpose of this inspection request in detail..."
-                                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 resize-vertical"></textarea>
+                                        <textarea name="purpose" required rows="3"
+                                                    placeholder="Describe the purpose of this inspection request in detail..."
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 resize-vertical"></textarea>
                                     </div>
                                     <div class="space-y-2">
                                         <label class="block text-sm font-semibold text-gray-700">Particulars *</label>
-                                        <textarea name="particulars" required rows="4" 
-                                                  placeholder="Provide detailed information about items, services, or materials to be inspected. Include specifications, quantities, and any special requirements..."
-                                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 resize-vertical"></textarea>
+                                        <textarea name="particulars" required rows="4"
+                                                    placeholder="Provide detailed information about items, services, or materials to be inspected. Include specifications, quantities, and any special requirements..."
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 resize-vertical"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -1298,9 +1392,9 @@
                                     <div id="othersTextContainer" class="mt-6 hidden">
                                         <div class="bg-white rounded-lg p-4 border-2 border-dashed border-gray-300">
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Please specify other requirements:</label>
-                                            <input type="text" name="othersText" 
-                                                   placeholder="Enter specific requirements not listed above..."
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                            <input type="text" name="othersText"
+                                                    placeholder="Enter specific requirements not listed above..."
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                         </div>
                                     </div>
                                 </div>
@@ -1327,9 +1421,9 @@
                                         </div>
                                         <div class="flex-1">
                                             <label class="block text-sm font-semibold text-gray-700 mb-2">Total Amount (Philippine Peso) *</label>
-                                            <input type="number" name="totalAmount" required step="0.01" min="0" 
-                                                   placeholder="Enter amount (e.g., 15000.00)"
-                                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 text-lg font-semibold">
+                                            <input type="number" name="totalAmount" required step="0.01" min="0"
+                                                    placeholder="Enter amount (e.g., 15000.00)"
+                                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400 text-lg font-semibold">
                                         </div>
                                     </div>
                                     <div class="mt-3 text-xs text-gray-600">
@@ -1349,12 +1443,12 @@
                                         <p class="mt-1">Review all information prior to click the submit button</p>
                                     </div>
                                     <div class="flex space-x-4">
-                                        <button type="button" onclick="goBack()" 
-                                                class="px-8 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 font-semibold">
+                                        <button type="button" onclick="goBack()"
+                                                    class="px-8 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 font-semibold">
                                             Cancel
                                         </button>
-                                        <button type="submit" 
-                                                class="px-8 py-3 ${formConfig.colorClass} hover:opacity-90 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
+                                        <button type="submit"
+                                                    class="px-8 py-3 ${formConfig.colorClass} hover:opacity-90 text-white rounded-xl transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
                                             Submit Request →
                                         </button>
                                     </div>
@@ -1378,6 +1472,23 @@
                     } else {
                         othersContainer.classList.add('hidden');
                         document.querySelector('input[name="othersText"]').required = false;
+                    }
+                });
+            });
+            
+            // Add event listener for purchase category radio buttons (for purchases form)
+            const categoryRadios = document.querySelectorAll('input[name="category"]');
+            categoryRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    const othersContainer = document.getElementById('categoryOthersContainer');
+                    const othersRadio = document.querySelector('input[name="category"][value="Others"]');
+
+                    if (othersRadio && othersRadio.checked) {
+                        othersContainer.classList.remove('hidden');
+                        document.querySelector('input[name="categoryOthersText"]').required = true;
+                    } else {
+                        othersContainer.classList.add('hidden');
+                        document.querySelector('input[name="categoryOthersText"]').required = false;
                     }
                 });
             });
@@ -1406,7 +1517,7 @@
                             <div class="bg-gray-50 rounded-xl p-6">
                                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                                     <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Supplies and Materials" required class="sr-only">
+                                        <input type="radio" name="category" value="Supplies and Materials" required class="sr-only peer">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                                 <span class="text-blue-600 text-sm">📋</span>
@@ -1416,7 +1527,7 @@
                                         <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-blue-500 peer-checked:bg-blue-50"></div>
                                     </label>
                                     <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Equipment" required class="sr-only">
+                                        <input type="radio" name="category" value="Equipment" required class="sr-only peer">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                                 <span class="text-blue-600 text-sm">⚙️</span>
@@ -1426,7 +1537,7 @@
                                         <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-blue-500 peer-checked:bg-blue-50"></div>
                                     </label>
                                     <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Others" required class="sr-only">
+                                        <input type="radio" name="category" value="Others" required class="sr-only peer">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                                 <span class="text-blue-600 text-sm">📝</span>
@@ -1439,9 +1550,9 @@
                                 <div id="categoryOthersContainer" class="mt-6 hidden">
                                     <div class="bg-white rounded-lg p-4 border-2 border-dashed border-gray-300">
                                         <label class="block text-sm font-semibold text-gray-700 mb-2">Please specify category:</label>
-                                        <input type="text" name="categoryOthersText" 
-                                               placeholder="Enter specific category not listed above..."
-                                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                        <input type="text" name="categoryOthersText"
+                                                placeholder="Enter specific category not listed above..."
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
                                     </div>
                                 </div>
                             </div>
@@ -1466,7 +1577,96 @@
                         </label>
                     `
                 },
-
+                ucss: {
+                    title: 'UCSS Purchases Inspection',
+                    description: 'Request inspection for UCSS purchases',
+                    icon: '🛒',
+                    colorClass: 'bg-green-600',
+                    specificFields: `
+                        <!-- Category Section -->
+                        <div class="mb-10">
+                            <div class="flex items-center mb-6">
+                                <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center mr-4">
+                                    <span class="text-white text-lg">🛍️</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900">UCSS Purchase Category</h3>
+                                    <p class="text-gray-600 text-sm">Please choose the type of UCSS purchase</p>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input type="radio" name="category" value="Student Organization Materials" required class="sr-only peer">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                <span class="text-green-600 text-sm">📚</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Student Organization Materials</span>
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
+                                    </label>
+                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input type="radio" name="category" value="Event Supplies" required class="sr-only peer">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                <span class="text-green-600 text-sm">🎉</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Event Supplies</span>
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
+                                    </label>
+                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input type="radio" name="category" value="Sports & Recreation Equipment" required class="sr-only peer">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                <span class="text-green-600 text-sm">⚽</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Sports & Recreation Equipment</span>
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
+                                    </label>
+                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                                        <input type="radio" name="category" value="Others" required class="sr-only peer">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                                <span class="text-green-600 text-sm">📝</span>
+                                            </div>
+                                            <span class="text-sm font-medium text-gray-700">Others</span>
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
+                                    </label>
+                                </div>
+                                <div id="categoryOthersContainer" class="mt-6 hidden">
+                                    <div class="bg-white rounded-lg p-4 border-2 border-dashed border-gray-300">
+                                        <label class="block text-sm font-semibold text-gray-700 mb-2">Please specify category:</label>
+                                        <input type="text" name="categoryOthersText"
+                                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 hover:border-gray-400">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    documentaryRequirements: `
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="approvedBudget" class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Approved Budget Proposal</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="endorsementLetter" class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Endorsement Letter</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="salesInvoice" class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Sales Invoice/Official Receipt</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Others</span>
+                        </label>
+                    `
+                },
                 postRepair: {
                     title: 'Post Repair Inspection',
                     description: 'Request inspection for Post-repair inspection and waste material disposal',
@@ -1498,20 +1698,24 @@
                             </div>
                             <div id="categoryOthersContainer" class="mt-4 hidden">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Please specify:</label>
-                                <input type="text" name="categoryOthersText" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                       placeholder="Please specify category...">
+                                <input type="text" name="categoryOthersText"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        placeholder="Please specify category...">
                             </div>
                         </div>
                     `,
                     documentaryRequirements: `
-                        <label class="flex items-center">
-                            <input type="checkbox" name="documentaryRequirement" value="proofSurrender" class="mr-3">
-                            <span class="text-sm text-gray-700">Proof of Surrender Waste</span>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="proofSurrender" class="mr-3 text-purple-600 focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Proof of Surrendered Waste</span>
                         </label>
-                        <label class="flex items-center">
-                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3">
-                            <span class="text-sm text-gray-700">Others</span>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-purple-600 focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Approved Purchase Request</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-purple-600 focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Others</span>
                         </label>
                     `
                 },
@@ -1546,75 +1750,27 @@
                             </div>
                             <div id="categoryOthersContainer" class="mt-4 hidden">
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Please specify:</label>
-                                <input type="text" name="categoryOthersText" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                       placeholder="Please specify category...">
+                                <input type="text" name="categoryOthersText"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        placeholder="Please specify category...">
                             </div>
                         </div>
                     `,
                     documentaryRequirements: `
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="salesInvoice" class="mr-3 text-blue-600 focus:ring-blue-500">
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-orange-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="salesInvoice" class="mr-3 text-orange-600 focus:ring-orange-500">
                             <span class="text-sm font-medium text-gray-700">Sales Invoice/Official Receipt</span>
                         </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-blue-600 focus:ring-blue-500">
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-orange-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-orange-600 focus:ring-orange-500">
                             <span class="text-sm font-medium text-gray-700">Approved Purchase Request</span>
                         </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="specialOrder" class="mr-3 text-blue-600 focus:ring-blue-500">
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-orange-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="specialOrder" class="mr-3 text-orange-600 focus:ring-orange-500">
                             <span class="text-sm font-medium text-gray-700">Special Order/Line Item Budget</span>
                         </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm font-medium text-gray-700">Others</span>
-                        </label>
-                    `
-                },
-                ucss: {
-                    title: 'UCSS Purchase Inspection',
-                    description: 'Request inspection for UCSS purchases.',
-                    icon: '🛒',
-                    colorClass: 'bg-green-600',
-                    specificFields: `
-                        <!-- Category Section -->
-                        <div class="mb-8">
-                            <h3 class="text-lg font-semibold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                                💻 Category
-                            </h3>
-                            <div class="space-y-3">
-                                <label class="flex items-center">
-                                    <input type="radio" name="category" value="Food" required class="mr-3">
-                                    <span class="text-sm text-gray-700">Food</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="category" value="Others" required class="mr-3">
-                                    <span class="text-sm text-gray-700">Others</span>
-                                </label>
-                            </div>
-                            <div id="categoryOthersContainer" class="mt-4 hidden">
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Please specify:</label>
-                                <input type="text" name="categoryOthersText" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                       placeholder="Please specify category...">
-                            </div>
-                        </div>
-                    `,
-                    documentaryRequirements: `
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="salesInvoice" class="mr-3 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm font-medium text-gray-700">Sales Invoice/Official Receipt</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm font-medium text-gray-700">Approved Purchase Request</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="specialOrder" class="mr-3 text-blue-600 focus:ring-blue-500">
-                            <span class="text-sm font-medium text-gray-700">Special Order/Line Item Budget</span>
-                        </label>
-                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-blue-600 focus:ring-blue-500">
+                        <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-orange-300 cursor-pointer transition-all duration-200">
+                            <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-orange-600 focus:ring-orange-500">
                             <span class="text-sm font-medium text-gray-700">Others</span>
                         </label>
                     `
@@ -1627,10 +1783,11 @@
         function handleFormSubmit(event, formType) {
             event.preventDefault();
             
-            const formData = new FormData(event.target);
+            const form = event.target;
+            const formData = new FormData(form);
             const data = {};
             
-            // Convert FormData to regular object, handling multiple values for checkboxes
+            // Convert FormData to regular object, handling multiple values for checkboxes and radios
             for (let [key, value] of formData.entries()) {
                 if (key === 'documentaryRequirement') {
                     if (!data[key]) {
@@ -1656,8 +1813,24 @@
             saveFormData(data);
             
             // Show success message and redirect to format display
-            alert('Form submitted successfully! Redirecting to format display...');
-            showFormatDisplay(data);
+            let messageBox = document.createElement('div');
+            messageBox.innerHTML = `
+                <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
+                    <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto">
+                        <div class="flex items-center space-x-4 mb-4">
+                            <span class="text-green-500 text-2xl">✅</span>
+                            <h3 class="text-lg font-bold">Success!</h3>
+                        </div>
+                        <p class="text-sm text-gray-700">Form submitted successfully! Redirecting to the formatted display.</p>
+                        <div class="flex justify-end mt-6">
+                            <button onclick="this.closest('.fixed').remove(); showFormatDisplay(currentFormData);" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
+                                OK
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(messageBox);
         }
 
         function generateControlNumber() {
@@ -1669,7 +1842,7 @@
             
             // Get existing control numbers for today
             const allRequests = JSON.parse(localStorage.getItem('inspectionRequests') || '[]');
-            const todayRequests = allRequests.filter(request => 
+            const todayRequests = allRequests.filter(request =>
                 request.controlNumber && request.controlNumber.startsWith(datePrefix)
             );
             
@@ -1776,19 +1949,19 @@
 
                 <div class="checkbox-group">
                     <div class="checkbox-item">
-                        <input type="checkbox" id="operationsPurchase${formNumber}">
+                        <input type="checkbox" id="operationsPurchase${formNumber}" disabled>
                         <label for="operationsPurchase${formNumber}">Operations Purchase (Cash Advance, Internal Funded, External Funded)</label>
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="postRepair${formNumber}">
+                        <input type="checkbox" id="postRepair${formNumber}" disabled>
                         <label for="postRepair${formNumber}">Post-Repair/Waste Material</label>
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="ucssPurchase${formNumber}">
+                        <input type="checkbox" id="ucssPurchase${formNumber}" disabled>
                         <label for="ucssPurchase${formNumber}">UCSS Purchases</label>
                     </div>
                     <div class="checkbox-item">
-                        <input type="checkbox" id="janitorialServices${formNumber}">
+                        <input type="checkbox" id="janitorialServices${formNumber}" disabled>
                         <label for="janitorialServices${formNumber}">Janitorial Services</label>
                     </div>
                 </div>
@@ -1817,44 +1990,52 @@
                 <div class="section-divider"></div>
 
                 <div class="documentary-requirements">
-                    <div class="documentary-requirements-title">Documentary Requirements: ( &#10003; or NA) <span style="font-size: 1.1rem; font-weight: bold; color: #000000;">***** To be filled-out by Inspectors *****</span></div>
+                    <div class="documentary-requirements-title">
+                        <div class="text-center italic font-bold">***** To be filled-out by Inspectors *****</div>
+                        <div class="text-left font-bold mt-2">Documentary Requirements: ( &#10003; or NA)</div>
+                    </div>
                     <div class="documentary-requirements-grid">
                         <div class="checkbox-item">
-                            <input type="checkbox" id="salesInvoice${formNumber}">
+                            <input type="checkbox" id="salesInvoice${formNumber}" disabled>
                             <label for="salesInvoice${formNumber}">Sales Invoice/Official Receipt</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="specialOrder${formNumber}">
+                            <input type="checkbox" id="specialOrder${formNumber}" disabled>
                             <label for="specialOrder${formNumber}">Special Order / Line-item budget</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="approvedPurchase${formNumber}">
+                            <input type="checkbox" id="approvedPurchase${formNumber}" disabled>
                             <label for="approvedPurchase${formNumber}">Approved Purchase Request</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="requestPostRepair${formNumber}">
+                            <input type="checkbox" id="requestPostRepair${formNumber}" disabled>
                             <label for="requestPostRepair${formNumber}">Request for Post-Repair and Inspection</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="proofSurrendered${formNumber}">
+                            <input type="checkbox" id="proofSurrendered${formNumber}" disabled>
                             <label for="proofSurrendered${formNumber}">Proof of surrendered waste materials</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="inventoryCustodian${formNumber}">
+                            <input type="checkbox" id="inventoryCustodian${formNumber}" disabled>
                             <label for="inventoryCustodian${formNumber}">Inventory Custodian Slip</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="propertyAcknowledge${formNumber}">
+                            <input type="checkbox" id="propertyAcknowledge${formNumber}" disabled>
                             <label for="propertyAcknowledge${formNumber}">Property Acknowledge Receipt</label>
                         </div>
                         <div class="checkbox-item">
-                            <input type="checkbox" id="cnas${formNumber}">
+                            <input type="checkbox" id="cnas${formNumber}" disabled>
                             <label for="cnas${formNumber}">CNAS</label>
                         </div>
+                        
                         <div class="checkbox-item">
-                            <input type="checkbox" id="others${formNumber}">
+                            <input type="checkbox" id="endorsementLetter${formNumber}" disabled>
+                            <label for="endorsementLetter${formNumber}">Endorsement Letter</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="others${formNumber}" disabled>
                             <label for="others${formNumber}">Others:</label>
-                            <div class="input-field flex-grow"></div>
+                            <div class="input-field flex-grow" id="othersField${formNumber}"></div>
                         </div>
                     </div>
                 </div>
@@ -1905,26 +2086,10 @@
                     <!-- Bottom section with inspector information table -->
                     <div class="bottom-section">
                         <div class="inspector-info-section">
-                            <div class="bottom-left-table-container">
-                                <table style="border-collapse: collapse; width: 75%; border: 1px solid black;">
-                                    <tbody>
-                                        <tr>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                            <td style="border: 1px solid black; padding: 6px; height: 35px; font-size: 0.65rem; width: 33.33%;">&nbsp;</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <div class="bottom-left-table-container flex-col" style="display: flex; flex-direction: column; width: 60%;">
+                                <div class="inspector-signature-row border-t border-l border-r border-black" id="inspector-row-1-${formNumber}"></div>
+                                <div class="inspector-signature-row border-t border-l border-r border-black" id="inspector-row-2-${formNumber}"></div>
+                                <div class="inspector-signature-row border border-black" id="inspector-row-3-${formNumber}"></div>
                             </div>
                         </div>
                     </div>
@@ -1941,11 +2106,11 @@
             const buttonsContainer = document.createElement('div');
             buttonsContainer.className = 'no-print fixed bottom-6 right-6 flex flex-col space-y-3 z-50';
             buttonsContainer.innerHTML = `
-                <button onclick="window.print()" 
+                <button onclick="window.print()"
                         class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors font-semibold">
                     🖨️ Print Forms
                 </button>
-                <button onclick="goBack()" 
+                <button onclick="goBack()"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors font-semibold">
                     ← Back to Menu
                 </button>
@@ -2026,6 +2191,25 @@
                             break;
                         case 'others':
                             checkboxId = `others${formNumber}`;
+                            const othersField = document.getElementById(`othersField${formNumber}`);
+                            if (othersField) {
+                                othersField.textContent = entry.othersText;
+                            }
+                            break;
+                        case 'approvedBudget':
+                            checkboxId = `approvedBudget${formNumber}`;
+                            break;
+                        case 'endorsementLetter':
+                            checkboxId = `endorsementLetter${formNumber}`;
+                            break;
+                        case 'cnas':
+                            checkboxId = `cnas${formNumber}`;
+                            break;
+                        case 'inventoryCustodian':
+                            checkboxId = `inventoryCustodian${formNumber}`;
+                            break;
+                        case 'propertyAcknowledge':
+                            checkboxId = `propertyAcknowledge${formNumber}`;
                             break;
                     }
                     
@@ -2039,5 +2223,6 @@
             }
         }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97505d05146584d0',t:'MTc1NjE4MDIwOS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
+
