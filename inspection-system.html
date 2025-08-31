@@ -898,7 +898,7 @@
 </head>
 <body>
     <!-- Data Privacy Act Modal - Always shows first -->
-    <div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]" style="display: flex;">
+    <div id="privacyModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]" style="display: none;">
         <div class="bg-white rounded-2xl shadow-2xl max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
             <div class="p-8">
                 <!-- Header -->
@@ -966,7 +966,7 @@
     </div>
     
     <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9998]" style="display: flex;">
+    <div id="loadingScreen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9998]">
         <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
         <p class="text-gray-700 text-lg font-semibold">Initializing app. Please wait...</p>
     </div>
@@ -1151,7 +1151,7 @@
         let db;
         let auth;
         let appId;
-        let isAuthenticated = false;
+        let isAuthReady = false;
 
         // Privacy modal functions
         function showPrivacyModal() {
@@ -1160,13 +1160,8 @@
 
         function agreePrivacy() {
             document.getElementById('privacyModal').style.display = 'none';
-            if (isAuthenticated) {
-                document.getElementById('loadingScreen').style.display = 'none';
-                document.getElementById('navigationContainer').style.display = 'block';
-                document.getElementById('navigationContainer').classList.remove('hidden');
-            } else {
-                 document.getElementById('loadingScreen').style.display = 'flex';
-            }
+            document.getElementById('navigationContainer').style.display = 'block';
+            document.getElementById('navigationContainer').classList.remove('hidden');
         }
 
         function disagreePrivacy() {
@@ -1205,6 +1200,23 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        document.getElementById('displayUserId').textContent = userId;
+                    } else {
+                        userId = null;
+                        document.getElementById('displayUserId').textContent = 'Not Authenticated';
+                    }
+
+                    // Hide the loading screen and show the privacy modal once Firebase auth state is checked
+                    if (!isAuthReady) {
+                        document.getElementById('loadingScreen').style.display = 'none';
+                        showPrivacyModal();
+                        isAuthReady = true;
+                    }
+                });
+
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
                 if (initialAuthToken) {
@@ -1212,23 +1224,6 @@
                 } else {
                     await signInAnonymously(auth);
                 }
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        isAuthenticated = true;
-                        document.getElementById('displayUserId').textContent = userId;
-                        console.log("Firebase initialized and user authenticated:", userId);
-                    } else {
-                        userId = null;
-                        isAuthenticated = false;
-                        document.getElementById('displayUserId').textContent = 'Not Authenticated';
-                        console.log("User is signed out or not authenticated.");
-                    }
-                    document.getElementById('loadingScreen').style.display = 'none';
-                    document.getElementById('navigationContainer').style.display = 'block';
-                    document.getElementById('navigationContainer').classList.remove('hidden');
-                });
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
             }
@@ -1279,7 +1274,6 @@
 
         async function saveFormData(data) {
             try {
-                // Save to a public collection for all users to see, but with a unique form ID
                 const docRef = await addDoc(collection(db, `/artifacts/${appId}/public/data/inspectionForms`), data);
                 console.log("Document written with ID: ", docRef.id);
             } catch (e) {
@@ -1288,14 +1282,13 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Initially show the loading screen
+            document.getElementById('loadingScreen').style.display = 'flex';
             initializeFirebase();
-            showPrivacyModal();
             
-            // Add event listeners for the privacy modal buttons
             document.getElementById('agreePrivacyButton').addEventListener('click', agreePrivacy);
             document.getElementById('disagreePrivacyButton').addEventListener('click', disagreePrivacy);
             
-            // Add event listeners for navigation buttons
             document.querySelectorAll('[data-form-type]').forEach(button => {
                 button.addEventListener('click', () => {
                     navigateToForm(button.getAttribute('data-form-type'));
@@ -1312,7 +1305,6 @@
             if (pageType === 'viewForms') {
                 document.getElementById('viewFormsContainer').style.display = 'block';
                 document.getElementById('viewFormsContainer').classList.remove('hidden');
-                // Removed loadViewForms call as it's not implemented yet
             } else {
                 document.getElementById('formContainer').style.display = 'block';
                 document.getElementById('formContainer').classList.remove('hidden');
