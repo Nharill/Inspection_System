@@ -1151,7 +1151,6 @@
         let db;
         let auth;
         let appId;
-        let isAuthReady = false;
 
         // Privacy modal functions
         function showPrivacyModal() {
@@ -1209,12 +1208,8 @@
                         document.getElementById('displayUserId').textContent = 'Not Authenticated';
                     }
 
-                    // Hide the loading screen and show the privacy modal once Firebase auth state is checked
-                    if (!isAuthReady) {
-                        document.getElementById('loadingScreen').style.display = 'none';
-                        showPrivacyModal();
-                        isAuthReady = true;
-                    }
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    showPrivacyModal();
                 });
 
                 const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
