@@ -1134,18 +1134,50 @@
     <div id="formatDisplayContainer" class="hidden format-display-container">
         <!-- Formatted forms will be displayed here -->
     </div>
+    
+    <!-- Modal for Firebase Auth Error -->
+    <div id="firebaseAuthErrorModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]" style="display: none;">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl mx-4 p-8 text-center">
+            <h2 class="text-2xl font-bold text-red-600 mb-4">Authentication Error</h2>
+            <p class="text-lg text-gray-700">
+                Anonymous sign-in failed. This is likely because the Anonymous sign-in provider is not enabled in your Firebase project.
+            </p>
+            <p class="mt-4 text-sm text-gray-600">
+                To fix this, please follow these steps:
+            </p>
+            <ol class="list-decimal list-inside text-left mt-4 text-sm text-gray-700 space-y-2">
+                <li>Go to your Firebase project console.</li>
+                <li>Navigate to **Authentication** in the Build menu.</li>
+                <li>Go to the **Sign-in method** tab.</li>
+                <li>Find the **Anonymous** provider and click the pencil icon to edit it.</li>
+                <li>Enable the provider and save your changes.</li>
+            </ol>
+            <button id="closeFirebaseAuthErrorModal" class="mt-8 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md">
+                I Understand
+            </button>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        const firebaseConfig = {
+          apiKey: "AIzaSyDXdIjYRCjwl6zFSKAbv-Pc_FI7xQLX1WA",
+          authDomain: "inspect-128d0.firebaseapp.com",
+          projectId: "inspect-128d0",
+          storageBucket: "inspect-128d0.firebasestorage.app",
+          messagingSenderId: "989001816031",
+          appId: "1:989001816031:web:57671f84e3bca0301a566a",
+          measurementId: "G-CN4XLNZWVD"
+        };
+        
+        const appId = firebaseConfig.projectId;
         let currentFormData = {};
         let userId = null;
         let db;
         let auth;
-        let appId;
-        let isAuthReady = false;
 
         // Privacy modal functions
         function showPrivacyModal() {
@@ -1182,65 +1214,46 @@
         // Firebase Initialization and Authentication
         async function initializeFirebase() {
             try {
-                // Check if the necessary global variables are available
-                if (typeof __firebase_config === 'undefined' || typeof __app_id === 'undefined') {
-                    console.error("Firebase configuration is not available. This app may be running in an environment without proper setup.");
-                    // Display a user-friendly message explaining the limitation
-                    let messageBox = document.createElement('div');
-                    messageBox.innerHTML = `
-                        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
-                            <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto text-center">
-                                <div class="flex items-center justify-center space-x-4 mb-4">
-                                    <span class="text-red-500 text-2xl">❌</span>
-                                    <h3 class="text-lg font-bold">Database Connection Failed</h3>
-                                </div>
-                                <p class="text-sm text-gray-700">
-                                    This application requires a Firebase database connection to function correctly. 
-                                    Please run this application in a supported environment to enable data persistence.
-                                </p>
-                                <div class="flex justify-center mt-6">
-                                    <button onclick="window.location.reload();" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition-colors">
-                                        Reload Page
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    document.body.appendChild(messageBox);
-                    return;
-                }
-
-                const firebaseConfig = JSON.parse(__firebase_config);
-                appId = __app_id;
-
-                if (Object.keys(firebaseConfig).length === 0) {
-                    console.error("Firebase config is missing.");
-                    return;
-                }
-
                 const app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                onAuthStateChanged(auth, (user) => {
+                auth.onAuthStateChanged((user) => {
                     if (user) {
                         userId = user.uid;
                         document.getElementById('displayUserId').textContent = userId;
                     } else {
                         userId = null;
                         document.getElementById('displayUserId').textContent = 'Not Authenticated';
+                        signInAnonymously(auth).catch((error) => {
+                            console.error("Anonymous sign-in failed:", error);
+                            document.getElementById('firebaseAuthErrorModal').style.display = 'flex';
+                        });
                     }
                 });
-
-                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
-                    await signInAnonymously(auth);
-                }
             } catch (error) {
                 console.error("Error initializing Firebase:", error);
+                // Fallback for cases where init fails completely
+                let messageBox = document.createElement('div');
+                messageBox.innerHTML = `
+                    <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
+                        <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <span class="text-red-500 text-2xl">⚠️</span>
+                                <h3 class="text-lg font-bold">Initialization Error</h3>
+                            </div>
+                            <p class="text-sm text-gray-700">
+                                The app could not connect to Firebase. Please check your browser's console for more details.
+                            </p>
+                            <div class="flex justify-end mt-6">
+                                <button onclick="this.closest('.fixed').remove()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition-colors">
+                                    OK
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(messageBox);
             }
         }
         
@@ -1293,8 +1306,8 @@
         }
 
         async function saveFormData(data) {
-            if (!db) {
-                console.error("Firestore is not initialized.");
+            if (!db || !userId) {
+                console.error("Firestore is not initialized or user is not authenticated.");
                 return;
             }
 
@@ -1317,6 +1330,10 @@
                 button.addEventListener('click', () => {
                     navigateToForm(button.getAttribute('data-form-type'));
                 });
+            });
+            
+            document.getElementById('closeFirebaseAuthErrorModal').addEventListener('click', () => {
+                document.getElementById('firebaseAuthErrorModal').style.display = 'none';
             });
         });
 
@@ -1896,7 +1913,6 @@
             submitButton.disabled = true;
             submitButton.textContent = 'Submitting...';
 
-            // Check if Firebase is ready before proceeding
             if (!db || !userId) {
                 let messageBox = document.createElement('div');
                 messageBox.innerHTML = `
@@ -1906,7 +1922,9 @@
                                 <span class="text-red-500 text-2xl">⚠️</span>
                                 <h3 class="text-lg font-bold">App Not Ready</h3>
                             </div>
-                            <p class="text-sm text-gray-700">Please wait a moment for the app to fully initialize and then try again.</p>
+                            <p class="text-sm text-gray-700">
+                                This app cannot connect to the database. Please ensure you have configured Firebase correctly.
+                            </p>
                             <div class="flex justify-end mt-6">
                                 <button id="errorOkButton" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition-colors">
                                     OK
@@ -2007,8 +2025,8 @@
             addNavigationButtons();
             
             setTimeout(() => {
-                fillFormData(entry, 1);
-                fillFormData(entry, 2);
+                fillFormData(currentFormData, 1);
+                fillFormData(currentFormData, 2);
             }, 200);
         }
 
