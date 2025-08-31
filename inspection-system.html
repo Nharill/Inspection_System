@@ -555,12 +555,10 @@
             border: none;
             border-bottom: 1px solid #000;
             background: transparent;
-            min-width: 100px;
-            display: inline-block;
+            min-height: 18px;
+            margin-top: 2px;
+            width: 100%;
             padding: 2px 4px;
-            margin: 0 4px;
-            font-weight: bold;
-            text-align: center;
             font-size: 0.7rem;
             outline: none;
         }
@@ -954,11 +952,11 @@
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col sm:flex-row gap-4 mt-8">
-                    <button onclick="disagreePrivacy()"
+                    <button id="disagreePrivacyButton"
                             class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                         I Disagree / Exit
                     </button>
-                    <button onclick="agreePrivacy()"
+                    <button id="agreePrivacyButton"
                             class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                         I Agree & Continue
                     </button>
@@ -966,9 +964,15 @@
             </div>
         </div>
     </div>
+    
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-white flex flex-col items-center justify-center z-[9998]" style="display: flex;">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mb-4"></div>
+        <p class="text-gray-700 text-lg font-semibold">Initializing app. Please wait...</p>
+    </div>
 
     <!-- Navigation Container -->
-    <div id="navigationContainer" class="hidden min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" style="display: none;">
+    <div id="navigationContainer" class="hidden min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <!-- Header -->
         <div class="bg-white shadow-lg border-b-4 border-blue-600">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -979,6 +983,7 @@
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold text-gray-900">Inspection Request System</h1>
+                            <p class="text-sm text-gray-500">User ID: <span id="displayUserId" class="font-mono text-xs"></span></p>
                         </div>
                     </div>
                     <div class="text-right">
@@ -1002,7 +1007,7 @@
             </div>
 
             <!-- Navigation Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div id="navigationCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Operations Purchase Card -->
                 <div class="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 overflow-hidden">
                     <div class="p-8">
@@ -1013,7 +1018,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for operational purchases (supplies, materials, and equipment).
                         </p>
-                        <button onclick="navigateToForm('purchases')"
+                        <button data-form-type="purchases"
                                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -1031,7 +1036,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for UCSS purchases.
                         </p>
-                        <button onclick="navigateToForm('ucss')"
+                        <button data-form-type="ucss"
                                 class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -1049,7 +1054,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for Post-repair inspection and waste material disposal.
                         </p>
-                        <button onclick="navigateToForm('postRepair')"
+                        <button data-form-type="postRepair"
                                 class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -1067,7 +1072,7 @@
                         <p class="text-gray-600 mb-6 text-sm leading-relaxed">
                             Request inspection for Janitorial Supplies and Services.
                         </p>
-                        <button onclick="navigateToForm('janitorial')"
+                        <button data-form-type="janitorial"
                                 class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-lg">
                             Start Request
                         </button>
@@ -1136,9 +1141,17 @@
         <!-- Formatted forms will be displayed here -->
     </div>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, addDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         let currentFormData = {};
-        let currentUserId = null;
+        let userId = null;
+        let db;
+        let auth;
+        let appId;
+        let isAuthenticated = false;
 
         // Privacy modal functions
         function showPrivacyModal() {
@@ -1147,8 +1160,13 @@
 
         function agreePrivacy() {
             document.getElementById('privacyModal').style.display = 'none';
-            document.getElementById('navigationContainer').style.display = 'block';
-            document.getElementById('navigationContainer').classList.remove('hidden');
+            if (isAuthenticated) {
+                document.getElementById('loadingScreen').style.display = 'none';
+                document.getElementById('navigationContainer').style.display = 'block';
+                document.getElementById('navigationContainer').classList.remove('hidden');
+            } else {
+                 document.getElementById('loadingScreen').style.display = 'flex';
+            }
         }
 
         function disagreePrivacy() {
@@ -1172,33 +1190,129 @@
             document.body.appendChild(messageBox);
         }
 
-        // Initialize user session
-        function initializeUser() {
-            currentUserId = localStorage.getItem('currentUserId');
-            if (!currentUserId) {
-                currentUserId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem('currentUserId', currentUserId);
+        // Firebase Initialization and Authentication
+        async function initializeFirebase() {
+            try {
+                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                if (Object.keys(firebaseConfig).length === 0) {
+                    console.error("Firebase config is missing.");
+                    return;
+                }
+
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        isAuthenticated = true;
+                        document.getElementById('displayUserId').textContent = userId;
+                        console.log("Firebase initialized and user authenticated:", userId);
+                    } else {
+                        userId = null;
+                        isAuthenticated = false;
+                        document.getElementById('displayUserId').textContent = 'Not Authenticated';
+                        console.log("User is signed out or not authenticated.");
+                    }
+                    document.getElementById('loadingScreen').style.display = 'none';
+                    document.getElementById('navigationContainer').style.display = 'block';
+                    document.getElementById('navigationContainer').classList.remove('hidden');
+                });
+            } catch (error) {
+                console.error("Error initializing Firebase:", error);
+            }
+        }
+        
+        async function generateControlNumber() {
+            const date = new Date();
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const datePrefix = `${year}${month}${day}`;
+
+            const counterRef = doc(db, `/artifacts/${appId}/public/data/counters/controlNumber`);
+
+            try {
+                const newControlNumber = await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    let currentCounter = 0;
+                    if (counterDoc.exists()) {
+                        const data = counterDoc.data();
+                        const lastControlNumber = data.lastNumber;
+                        if (lastControlNumber && lastControlNumber.startsWith(datePrefix)) {
+                            const lastSequence = parseInt(lastControlNumber.split('-')[1]);
+                            if (!isNaN(lastSequence)) {
+                                currentCounter = lastSequence;
+                            }
+                        }
+                    }
+                    
+                    const nextCounter = currentCounter + 1;
+                    const nextSequence = String(nextCounter).padStart(3, '0');
+                    const newNumber = `${datePrefix}-${nextSequence}`;
+                    
+                    transaction.set(counterRef, {
+                        lastNumber: newNumber,
+                        timestamp: serverTimestamp()
+                    });
+                    
+                    return newNumber;
+                });
+                return newControlNumber;
+
+            } catch (e) {
+                console.error("Transaction failed: ", e);
+                return null;
             }
         }
 
-        // Call initialize user on page load
+        async function saveFormData(data) {
+            try {
+                // Save to a public collection for all users to see, but with a unique form ID
+                const docRef = await addDoc(collection(db, `/artifacts/${appId}/public/data/inspectionForms`), data);
+                console.log("Document written with ID: ", docRef.id);
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            initializeUser();
+            initializeFirebase();
             showPrivacyModal();
+            
+            // Add event listeners for the privacy modal buttons
+            document.getElementById('agreePrivacyButton').addEventListener('click', agreePrivacy);
+            document.getElementById('disagreePrivacyButton').addEventListener('click', disagreePrivacy);
+            
+            // Add event listeners for navigation buttons
+            document.querySelectorAll('[data-form-type]').forEach(button => {
+                button.addEventListener('click', () => {
+                    navigateToForm(button.getAttribute('data-form-type'));
+                });
+            });
         });
 
         function navigateToPage(pageType) {
-            // Hide navigation completely
             document.getElementById('navigationContainer').style.display = 'none';
             document.getElementById('navigationContainer').classList.add('hidden');
             
-            // Scroll to top for clean page transition
             window.scrollTo(0, 0);
             
             if (pageType === 'viewForms') {
                 document.getElementById('viewFormsContainer').style.display = 'block';
                 document.getElementById('viewFormsContainer').classList.remove('hidden');
-                loadViewForms();
+                // Removed loadViewForms call as it's not implemented yet
             } else {
                 document.getElementById('formContainer').style.display = 'block';
                 document.getElementById('formContainer').classList.remove('hidden');
@@ -1207,11 +1321,9 @@
         }
 
         function navigateToForm(formType) {
-            // Hide navigation completely and show form as new page
             document.getElementById('navigationContainer').style.display = 'none';
             document.getElementById('navigationContainer').classList.add('hidden');
             
-            // Scroll to top for clean page transition
             window.scrollTo(0, 0);
             
             document.getElementById('formContainer').style.display = 'block';
@@ -1220,12 +1332,10 @@
         }
 
         function startRequest(formType) {
-            // Alias for backward compatibility
             navigateToForm(formType);
         }
 
         function goBack() {
-            // Hide all other containers completely
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('formContainer').classList.add('hidden');
             document.getElementById('formatDisplayContainer').style.display = 'none';
@@ -1233,18 +1343,15 @@
             document.getElementById('viewFormsContainer').style.display = 'none';
             document.getElementById('viewFormsContainer').classList.add('hidden');
             
-            // Show navigation as new page
             document.getElementById('navigationContainer').style.display = 'block';
             document.getElementById('navigationContainer').classList.remove('hidden');
             
-            // Scroll to top for clean page transition
             window.scrollTo(0, 0);
         }
-
+        
         function loadForm(formType) {
             const formContainer = document.getElementById('formContainer');
             
-            // Common form structure with dynamic content based on type
             const formConfig = getFormConfig(formType);
             
             formContainer.innerHTML = `
@@ -1261,7 +1368,7 @@
                                     <p class="text-gray-600">${formConfig.description}</p>
                                 </div>
                             </div>
-                            <button onclick="goBack()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                            <button id="goBackFromFormHeaderButton" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
                                 ← Back to Menu
                             </button>
                         </div>
@@ -1282,7 +1389,7 @@
                             </div>
                         </div>
 
-                        <form id="inspectionForm" onsubmit="handleFormSubmit(event, '${formType}')" class="p-8">
+                        <form id="inspectionForm" class="p-8">
                             <!-- Personal Information Section -->
                             <div class="mb-10">
                                 <div class="flex items-center mb-6">
@@ -1443,7 +1550,7 @@
                                         <p class="mt-1">Review all information prior to click the submit button</p>
                                     </div>
                                     <div class="flex space-x-4">
-                                        <button type="button" onclick="goBack()"
+                                        <button type="button" id="cancelFormButton"
                                                     class="px-8 py-3 border-2 border-gray-300 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 font-semibold">
                                             Cancel
                                         </button>
@@ -1458,6 +1565,12 @@
                     </div>
                 </div>
             `;
+            
+            document.getElementById('goBackFromFormHeaderButton').addEventListener('click', goBack);
+            document.getElementById('cancelFormButton').addEventListener('click', goBack);
+            document.getElementById('inspectionForm').addEventListener('submit', (event) => {
+                handleFormSubmit(event, formType);
+            });
 
             // Add event listener for documentary requirements
             const docReqCheckboxes = document.querySelectorAll('input[name="documentaryRequirement"]');
@@ -1598,32 +1711,12 @@
                             <div class="bg-gray-50 rounded-xl p-6">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Student Organization Materials" required class="sr-only peer">
+                                        <input type="radio" name="category" value="Food" required class="sr-only peer">
                                         <div class="flex items-center space-x-3">
                                             <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <span class="text-green-600 text-sm">📚</span>
+                                                <span class="text-green-600 text-sm">🍽️</span>
                                             </div>
-                                            <span class="text-sm font-medium text-gray-700">Student Organization Materials</span>
-                                        </div>
-                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
-                                    </label>
-                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Event Supplies" required class="sr-only peer">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <span class="text-green-600 text-sm">🎉</span>
-                                            </div>
-                                            <span class="text-sm font-medium text-gray-700">Event Supplies</span>
-                                        </div>
-                                        <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
-                                    </label>
-                                    <label class="relative flex items-center p-4 bg-white rounded-lg border-2 border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
-                                        <input type="radio" name="category" value="Sports & Recreation Equipment" required class="sr-only peer">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                                <span class="text-green-600 text-sm">⚽</span>
-                                            </div>
-                                            <span class="text-sm font-medium text-gray-700">Sports & Recreation Equipment</span>
+                                            <span class="text-sm font-medium text-gray-700">Food</span>
                                         </div>
                                         <div class="absolute inset-0 rounded-lg border-2 border-transparent peer-checked:border-green-500 peer-checked:bg-green-50"></div>
                                     </label>
@@ -1654,8 +1747,8 @@
                             <span class="text-sm font-medium text-gray-700">Approved Budget Proposal</span>
                         </label>
                         <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="endorsementLetter" class="mr-3 text-green-600 focus:ring-green-500">
-                            <span class="text-sm font-medium text-gray-700">Endorsement Letter</span>
+                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-sm font-medium text-gray-700">Approved Purchase Request</span>
                         </label>
                         <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-green-300 cursor-pointer transition-all duration-200">
                             <input type="checkbox" name="documentaryRequirement" value="salesInvoice" class="mr-3 text-green-600 focus:ring-green-500">
@@ -1710,8 +1803,8 @@
                             <span class="text-sm font-medium text-gray-700">Proof of Surrendered Waste</span>
                         </label>
                         <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all duration-200">
-                            <input type="checkbox" name="documentaryRequirement" value="approvedPurchase" class="mr-3 text-purple-600 focus:ring-purple-500">
-                            <span class="text-sm font-medium text-gray-700">Approved Purchase Request</span>
+                            <input type="checkbox" name="documentaryRequirement" value="endorsementLetter" class="mr-3 text-purple-600 focus:ring-purple-500">
+                            <span class="text-sm font-medium text-gray-700">Endorsement Letter</span>
                         </label>
                         <label class="flex items-center p-3 bg-white rounded-lg border border-gray-200 hover:border-purple-300 cursor-pointer transition-all duration-200">
                             <input type="checkbox" name="documentaryRequirement" value="others" class="mr-3 text-purple-600 focus:ring-purple-500">
@@ -1780,14 +1873,13 @@
             return configs[formType];
         }
 
-        function handleFormSubmit(event, formType) {
+        async function handleFormSubmit(event, formType) {
             event.preventDefault();
             
             const form = event.target;
             const formData = new FormData(form);
             const data = {};
             
-            // Convert FormData to regular object, handling multiple values for checkboxes and radios
             for (let [key, value] of formData.entries()) {
                 if (key === 'documentaryRequirement') {
                     if (!data[key]) {
@@ -1799,20 +1891,15 @@
                 }
             }
             
-            // Add metadata
             data.purchaseType = formType;
             data.timestamp = new Date().toLocaleString();
-            data.userId = currentUserId;
-            data.id = Date.now(); // Simple ID generation
-            data.controlNumber = generateControlNumber();
+            data.userId = userId;
+            data.controlNumber = await generateControlNumber();
             
-            // Store the data
             currentFormData = data;
             
-            // Save to localStorage
-            saveFormData(data);
+            await saveFormData(data);
             
-            // Show success message and redirect to format display
             let messageBox = document.createElement('div');
             messageBox.innerHTML = `
                 <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
@@ -1823,7 +1910,7 @@
                         </div>
                         <p class="text-sm text-gray-700">Form submitted successfully! Redirecting to the formatted display.</p>
                         <div class="flex justify-end mt-6">
-                            <button onclick="this.closest('.fixed').remove(); showFormatDisplay(currentFormData);" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
+                            <button id="okButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg transition-colors">
                                 OK
                             </button>
                         </div>
@@ -1831,77 +1918,33 @@
                 </div>
             `;
             document.body.appendChild(messageBox);
-        }
 
-        function generateControlNumber() {
-            const date = new Date();
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            const datePrefix = `${year}${month}${day}`;
-            
-            // Get existing control numbers for today
-            const allRequests = JSON.parse(localStorage.getItem('inspectionRequests') || '[]');
-            const todayRequests = allRequests.filter(request =>
-                request.controlNumber && request.controlNumber.startsWith(datePrefix)
-            );
-            
-            // Find the highest sequence number for today
-            let maxSequence = 0;
-            todayRequests.forEach(request => {
-                const parts = request.controlNumber.split('-');
-                if (parts.length === 2) {
-                    const sequence = parseInt(parts[1]);
-                    if (!isNaN(sequence) && sequence > maxSequence) {
-                        maxSequence = sequence;
-                    }
-                }
+            document.getElementById('okButton').addEventListener('click', () => {
+                messageBox.remove();
+                showFormatDisplay(currentFormData);
             });
-            
-            // Increment for next transaction
-            const nextSequence = String(maxSequence + 1).padStart(3, '0');
-            
-            return `${datePrefix}-${nextSequence}`;
-        }
-
-        function saveFormData(data) {
-            // Save to general storage
-            let allRequests = JSON.parse(localStorage.getItem('inspectionRequests') || '[]');
-            allRequests.push(data);
-            localStorage.setItem('inspectionRequests', JSON.stringify(allRequests));
-            
-            // Save to user-specific storage
-            let userRequests = JSON.parse(localStorage.getItem('currentUserRequests') || '[]');
-            userRequests.push(data);
-            localStorage.setItem('currentUserRequests', JSON.stringify(userRequests));
         }
 
         function showFormatDisplay(data) {
-            // Hide all other containers completely
             document.getElementById('formContainer').style.display = 'none';
             document.getElementById('formContainer').classList.add('hidden');
             document.getElementById('viewFormsContainer').style.display = 'none';
             document.getElementById('viewFormsContainer').classList.add('hidden');
             
-            // Show format display as new page
             document.getElementById('formatDisplayContainer').style.display = 'block';
             document.getElementById('formatDisplayContainer').classList.remove('hidden');
             
-            // Scroll to top for clean page transition
             window.scrollTo(0, 0);
             
-            // Generate the formatted display
             generateFormattedDisplay(data);
         }
 
         function generateFormattedDisplay(entry) {
             const container = document.getElementById('formatDisplayContainer');
             
-            // Create the form pages wrapper
             const formPagesWrapper = document.createElement('div');
             formPagesWrapper.className = 'form-pages-wrapper';
             
-            // Generate both IMO Copy and Second Copy
             for (let i = 1; i <= 2; i++) {
                 const copyLabel = i === 1 ? 'IMO COPY' : 'SECOND COPY';
                 const formContainer = createFormContainer(entry, i, copyLabel);
@@ -1911,8 +1954,12 @@
             container.innerHTML = '';
             container.appendChild(formPagesWrapper);
             
-            // Add navigation buttons
             addNavigationButtons();
+            
+            setTimeout(() => {
+                fillFormData(entry, 1);
+                fillFormData(entry, 2);
+            }, 200);
         }
 
         function createFormContainer(entry, formNumber, copyLabel) {
@@ -2027,11 +2074,6 @@
                             <input type="checkbox" id="cnas${formNumber}" disabled>
                             <label for="cnas${formNumber}">CNAS</label>
                         </div>
-                        
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="endorsementLetter${formNumber}" disabled>
-                            <label for="endorsementLetter${formNumber}">Endorsement Letter</label>
-                        </div>
                         <div class="checkbox-item">
                             <input type="checkbox" id="others${formNumber}" disabled>
                             <label for="others${formNumber}">Others:</label>
@@ -2102,15 +2144,14 @@
         function addNavigationButtons() {
             const container = document.getElementById('formatDisplayContainer');
             
-            // Create navigation buttons container
             const buttonsContainer = document.createElement('div');
             buttonsContainer.className = 'no-print fixed bottom-6 right-6 flex flex-col space-y-3 z-50';
             buttonsContainer.innerHTML = `
-                <button onclick="window.print()"
+                <button id="printButton"
                         class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors font-semibold">
                     🖨️ Print Forms
                 </button>
-                <button onclick="goBack()"
+                <button id="backFromDisplayButton"
                         class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg shadow-lg transition-colors font-semibold">
                     ← Back to Menu
                 </button>
@@ -2118,7 +2159,9 @@
             
             container.appendChild(buttonsContainer);
             
-            // Fill the form data after DOM is created
+            document.getElementById('printButton').addEventListener('click', () => window.print());
+            document.getElementById('backFromDisplayButton').addEventListener('click', goBack);
+            
             setTimeout(() => {
                 fillFormData(currentFormData, 1);
                 fillFormData(currentFormData, 2);
@@ -2126,7 +2169,6 @@
         }
 
         function fillFormData(entry, formNumber) {
-            // Fill control number - target the specific element by ID
             const controlNumberElement = document.getElementById(`controlNumber${formNumber}`);
             if (controlNumberElement && entry.controlNumber) {
                 controlNumberElement.textContent = entry.controlNumber;
@@ -2135,7 +2177,6 @@
                 controlNumberElement.style.background = 'transparent';
             }
 
-            // Fill purchase type checkboxes
             if (entry.purchaseType === 'purchases') {
                 const checkbox = document.getElementById(`operationsPurchase${formNumber}`);
                 if (checkbox) checkbox.checked = true;
@@ -2150,13 +2191,11 @@
                 if (checkbox) checkbox.checked = true;
             }
 
-            // Fill date and time requested
             const dateTimeElement = document.getElementById(`dateTimeRequested${formNumber}`);
             if (dateTimeElement) {
                 dateTimeElement.textContent = entry.timestamp || new Date().toLocaleString();
             }
 
-            // Fill text fields
             const fieldMappings = {
                 'requestedBy': `requestedBy${formNumber}`,
                 'officeDepartment': `officeDepartment${formNumber}`,
@@ -2172,7 +2211,6 @@
                 }
             });
 
-            // Fill documentary requirements checkboxes
             if (entry.documentaryRequirement && Array.isArray(entry.documentaryRequirement)) {
                 entry.documentaryRequirement.forEach(requirement => {
                     let checkboxId = '';
@@ -2225,4 +2263,3 @@
     </script>
 </body>
 </html>
-
