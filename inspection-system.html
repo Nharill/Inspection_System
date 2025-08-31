@@ -1182,8 +1182,36 @@
         // Firebase Initialization and Authentication
         async function initializeFirebase() {
             try {
-                const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                // Check if the necessary global variables are available
+                if (typeof __firebase_config === 'undefined' || typeof __app_id === 'undefined') {
+                    console.error("Firebase configuration is not available. This app may be running in an environment without proper setup.");
+                    // Display a user-friendly message explaining the limitation
+                    let messageBox = document.createElement('div');
+                    messageBox.innerHTML = `
+                        <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-[9999]">
+                            <div class="bg-white rounded-lg p-6 shadow-xl max-w-sm mx-auto text-center">
+                                <div class="flex items-center justify-center space-x-4 mb-4">
+                                    <span class="text-red-500 text-2xl">❌</span>
+                                    <h3 class="text-lg font-bold">Database Connection Failed</h3>
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    This application requires a Firebase database connection to function correctly. 
+                                    Please run this application in a supported environment to enable data persistence.
+                                </p>
+                                <div class="flex justify-center mt-6">
+                                    <button onclick="window.location.reload();" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold px-4 py-2 rounded-lg transition-colors">
+                                        Reload Page
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(messageBox);
+                    return;
+                }
+
+                const firebaseConfig = JSON.parse(__firebase_config);
+                appId = __app_id;
 
                 if (Object.keys(firebaseConfig).length === 0) {
                     console.error("Firebase config is missing.");
